@@ -37,3 +37,5 @@
     - Để nhận diện khuôn mặt trong video chạy dòng lệnh sau:
     
           - python facerec_from_video_file.py -f "đường dẫn đến file video" -m "đường dẫn tập tin model.json"
+          
+Tham khảo: https://medium.com/@ageitgey/machine-learning-is-fun-part-4-modern-face-recognition-with-deep-learning-c3cffc121d78
