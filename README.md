@@ -26,16 +26,26 @@
         
         - Sau khi chạy lệnh này xong bạn sẽ thấy tập tin model.json được tạo trong "đường dẫn thư mục cha"
         
+   ![Training faces](../master/imgs/face_recognition_training.png)
+        
 + Nhận diện khuôn mặt của hình ảnh trong thư mục
   
   - Sau khi có được dữ liệu huấn luyện (model.json), chạy dòng lệnh sau:
   
         - python facerec_from_folder_images.py -f "đường dẫn thư mục chứa ảnh cần nhận diện" -m "đường dẫn của tập tin model.json"
         
+    ![Recognition from folder image](../master/imgs/face_recognition_from_folder_images.png)
+    
+    ![Recognition from folder image result](../master/imgs/face_recognition_from_folder_images_result.png)
+        
 + Nhận diện khuôn mặt trong video:
 
     - Để nhận diện khuôn mặt trong video chạy dòng lệnh sau:
     
           - python facerec_from_video_file.py -f "đường dẫn đến file video" -m "đường dẫn tập tin model.json"
+          
+    ![Recognition from video file](../master/imgs/face_recognition_from_video_file.png)
+          
+    ![Recognition from video file result](../master/imgs/face_recognition_from_video_file_result.png)
           
 Tham khảo: https://medium.com/@ageitgey/machine-learning-is-fun-part-4-modern-face-recognition-with-deep-learning-c3cffc121d78
