@@ -9,6 +9,7 @@ from skimage import io
 import shutil
 import cv2
 import json
+import argparse
 from common import utils
 
 # construct the argument parse and parse the arguments
@@ -17,9 +18,10 @@ ap.add_argument("-f", "--folder", required=True,
 	help="path to image folder")
 ap.add_argument("-m", "--model", required=True,
 	help="trained model")
+
 args = vars(ap.parse_args())
 
-images = args['file']
+images = args['folder']
 model_path = args['model']
 
 detector = dlib.get_frontal_face_detector()
@@ -29,22 +31,23 @@ facerec = dlib.face_recognition_model_v1('models/dlib_face_recognition_resnet_mo
 model = json.load(open(model_path))
 
 win = dlib.image_window()
-        
+
+output_folder_path = os.path.dirname(model_path)
+
 for f in glob.glob(os.path.join(images, "*.jpg")):
     print("Processing file: {}".format(f))
     img = io.imread(f)
     
-    resized = cv2.resize(img, (0, 0), fx = 1/RATIO, fy = 1/RATIO)
     win.clear_overlay()
-    win.set_image(resized)
+    win.set_image(img)
     
-    gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
     dets = detector(gray, 1)
     
     for k, d in enumerate(dets):
         shape = sp(gray, d)
-        face_descriptor = facerec.compute_face_descriptor(resized, shape, 5)
+        face_descriptor = facerec.compute_face_descriptor(img, shape, 5)
         descriptor = list(face_descriptor)
         
         face = utils.predictBest(model, descriptor, 0.6)
@@ -55,8 +58,10 @@ for f in glob.glob(os.path.join(images, "*.jpg")):
             name = "Other"
         
         if name != "Other":
+            
             file = os.path.join(output_folder_path, name)
             path = os.listdir(file)[0]
+            
             if len(os.listdir(file)) > 0:
                 photo = io.imread(os.path.join(file, path))
                 photo_resize = cv2.resize(photo, (250, 250))
@@ -64,7 +69,7 @@ for f in glob.glob(os.path.join(images, "*.jpg")):
                 cv2.line(photo_resize,(0,240),(250,240),(0,0,0),20)        
                 cv2.putText(photo_resize, "{}".format("Actual: " + actual), (5, 242), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
                 
-                face = dlib.get_face_chip(resized, shape, 250, 0.25)
+                face = dlib.get_face_chip(img, shape, 250, 0.25)
                 cv2.line(face,(0,240),(250,240),(0,0,0),20)
                 cv2.putText(face, "{}".format("Guess: " + name), (5, 242), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
                 

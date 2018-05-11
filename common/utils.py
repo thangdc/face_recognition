@@ -50,7 +50,6 @@ def predictBest(model, descriptor, unknownThreshold = 0):
     means = list(map(lambda item : (computeMeanDistance(item['faceDescriptors'], descriptor), item['className']), model))
     
     array = sorted(means, key=lambda x: x[0])
-    print(array)
     distance = array[0][0]
     
     if distance >= unknownThreshold:
