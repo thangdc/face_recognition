@@ -1,0 +1,1 @@
+python "../facerec_from_video_file.py" -f "Z:\D\ThangDC\Phim\Phim Nhat\Nha Su Khi Yeu\Nha Su Khi Yeu - Tap 2.mp4" -m "../model_LinearSvm.pkl"

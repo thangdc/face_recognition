@@ -1,0 +1,1 @@
+python "../facerec_from_folder_images.py" -f "../test" -m "../model_LinearSvm.pkl" -o "../train"

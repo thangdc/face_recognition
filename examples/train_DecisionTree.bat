@@ -1,0 +1,1 @@
+python "../training.py" -f "../train" -c="DecisionTree"

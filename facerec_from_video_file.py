@@ -3,6 +3,11 @@ import cv2
 import json
 import dlib
 from common import utils
+import time
+import pickle
+import numpy as np
+import pathlib
+import os
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -16,48 +21,68 @@ args = vars(ap.parse_args())
 video_path = args["file"]
 
 #Load trained data
-model = json.load(open(args["model"]))
+#model = json.load(open(args["model"]))
 
+with open(args['model'], 'rb') as f:
+    (le, clf) = pickle.load(f)
+    
 #Load video from video_path
 cap = cv2.VideoCapture(video_path)
 
-detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor('models/shape_predictor_68_face_landmarks.dat')
-facerec = dlib.face_recognition_model_v1('models/dlib_face_recognition_resnet_model_v1.dat')
+dirpath = pathlib.Path(__file__).parent
 
-RATIO = 4
+detector = dlib.get_frontal_face_detector()
+predictor = dlib.shape_predictor(os.path.join(dirpath, 'models/shape_predictor_68_face_landmarks.dat'))
+facerec = dlib.face_recognition_model_v1(os.path.join(dirpath, 'models/dlib_face_recognition_resnet_model_v1.dat'))
+
+RATIO = 2
+locations = {}
+
+process_this_frame = True
 
 while True:
     ret, frame = cap.read()
+
+    start = time.time()
     
     if (type(frame) == type(None)):
         break
 
-    frame_displayed = cv2.resize(frame, (0,0), fx=1/2, fy=1/2)
+    frame_displayed = cv2.resize(frame, (0,0), fx=1/1, fy=1/1)
     frame_resized = cv2.resize(frame_displayed, (0,0), fx=1/RATIO, fy=1/RATIO) 
 
     frame_gray = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2GRAY)
 
-    rects = detector(frame_gray, 1)
-
-    for k, d in enumerate(rects):
-        shape = predictor(frame_gray, d)
-        cv2.rectangle(frame_displayed, (d.left() * RATIO, d.top() * RATIO),(d.right() * RATIO, d.bottom() * RATIO), (0, 0, 255), 1)
+    face_names = []
+    face_confidences = []
         
-        face_descriptor = facerec.compute_face_descriptor(frame_resized, shape)
-        descriptor = list(face_descriptor)
-        face = utils.predictBest(model, descriptor, 0.6)
-        
-        if len(face) > 0:
-            name = face[1]
+    face_locations = detector(frame_gray, 1)
+    face_descriptors = [np.asarray(list(facerec.compute_face_descriptor(frame_resized, shape))) for shape in [predictor(frame_gray, d) for d in face_locations]]
+    
+    for descriptor in face_descriptors:
+        predictions = clf.predict_proba(descriptor.reshape(1, -1)).ravel()
+        maxI = np.argmax(predictions)
+        name = le.inverse_transform(maxI)
+        confidence = predictions[maxI]
+        face_confidences.append(confidence)
+            
+        if confidence < 0.5:
+            face_names.append("unknown")
         else:
-            name = "Unknown"
-
-        # Draw a label with a name below the face
-        cv2.rectangle(frame_displayed, (d.left() * RATIO, d.bottom() * RATIO - 25), (d.right() * RATIO, d.bottom() * RATIO), (0, 0, 255), cv2.FILLED)
+            face_names.append(name)
+   
+    for d, name, confidence in zip(face_locations, face_names, face_confidences):
+        top = d.top() * RATIO
+        left = d.left() * RATIO
+        bottom = d.bottom() * RATIO
+        right = d.right() * RATIO
+        cv2.rectangle(frame_displayed, (left, top),(right, bottom), (0, 0, 255), 1)
+        cv2.rectangle(frame_displayed, (left, bottom - 25), (right, bottom), (0, 0, 255), cv2.FILLED)
         font = cv2.FONT_HERSHEY_DUPLEX
-        cv2.putText(frame_displayed, name, (d.left() * RATIO + 6, d.bottom() * RATIO - 6), font, 0.5, (255, 255, 255), 1)
-        
+        cv2.putText(frame_displayed, name, (left + 6, bottom - 6), font, 0.5, (255, 255, 255), 1)
+        print("{}".format(name) + " (" + "{0:.2f})".format(confidence))
+        print("Recognition face took {} seconds.".format(time.time() - start))
+                
     cv2.imshow('Face Recognition', frame_displayed)
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
