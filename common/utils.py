@@ -6,6 +6,8 @@ import time
 import os.path
 import uuid
 import dlib
+from common import config
+from PIL import Image, ImageFont, ImageDraw
 
 INNER_EYES_AND_BOTTOM_LIP = [39, 42, 57]
 OUTER_EYES_AND_NOSE = [36, 45, 33]
@@ -102,12 +104,24 @@ def predictBest(model, descriptor, unknownThreshold = 0):
     else:
         return array[0]
     
-def save_face_image(frame, shape, name, folder, confidence):
-    file = str(uuid.uuid4())
-    print('Saving file: ' + file)
-    dlib.save_face_chip(frame, shape, os.path.join(folder, "{}_{}_{}".format(name, confidence, file)), 150, 0.2)
+def save_face_image(frame, name, folder, confidence):
+    file = str(uuid.uuid4()) + ".jpg"
 
-def align_face(rgbImg, points, imgDim, landmarkIndices=INNER_EYES_AND_BOTTOM_LIP):
+    try:
+        height, width = frame.shape[:2]
+        if width > 100 and height > 100:
+            if name == "":
+                filename = os.path.join(folder, "{}".format(file))
+            else:
+                filename = os.path.join(folder, "{}_{}_{}".format(name, confidence, file))
+            print('\tSaving file: ' + filename)
+            
+            image = Image.fromarray(frame).convert('RGB')
+            image.save(filename)
+    except Exception as error:
+        print('\t' + str(error))
+
+def align_face(rgbImg, points, imgDim, landmarkIndices=OUTER_EYES_AND_NOSE):
     landmarks = list(map(lambda p: (p.x, p.y), points.parts()))
     npLandmarks = np.float32(landmarks)
     npLandmarkIndices = np.array(landmarkIndices)
@@ -117,35 +131,121 @@ def align_face(rgbImg, points, imgDim, landmarkIndices=INNER_EYES_AND_BOTTOM_LIP
     thumbnail = cv2.warpAffine(rgbImg, H, (imgDim, imgDim))
     
     return thumbnail
+
+def raw_land_marks(landmark):
+    landmarks = []
+    # Around Chin. Ear to Ear
+    i = 1
+    while i <= 16:
+        landmarks.append([landmark.part(i).x, landmark.part(i).y, landmark.part(i - 1).x, landmark.part(i - 1).y])
+        i += 1
+
+    #Line on top of nose
+    i = 28
+    while i <= 30:
+        landmarks.append([landmark.part(i).x, landmark.part(i).y,landmark.part(i - 1).x, landmark.part(i - 1).y])
+        i += 1
+
+    #left eyebrow
+    i = 18
+    while i <= 21:
+        landmarks.append([landmark.part(i).x, landmark.part(i).y,landmark.part(i - 1).x, landmark.part(i - 1).y])
+        i += 1
+
+    #Right eyebrow
+    i = 23
+    while i <= 26:
+        landmarks.append([landmark.part(i).x, landmark.part(i).y,landmark.part(i - 1).x, landmark.part(i - 1).y])
+        i += 1
+
+    #Bottom part of the nose
+    i = 31
+    while i <= 35:
+        landmarks.append([landmark.part(i).x, landmark.part(i).y,landmark.part(i - 1).x, landmark.part(i - 1).y])
+        i += 1
+
+    #Line from the nose to the bottom part above
+    landmarks.append([landmark.part(30).x, landmark.part(30).y,landmark.part(35).x, landmark.part(35).y])
+
+    #Left eye
+    i = 37
+    while i <= 41:
+        landmarks.append([landmark.part(i).x, landmark.part(i).y,landmark.part(i - 1).x, landmark.part(i - 1).y])
+        i += 1
+    landmarks.append([landmark.part(36).x, landmark.part(36).y,landmark.part(41).x, landmark.part(41).y])
+
+    #Right eye
+    i = 43
+    while i <= 47:
+        landmarks.append([landmark.part(i).x, landmark.part(i).y,landmark.part(i - 1).x, landmark.part(i - 1).y])
+        i += 1
+    landmarks.append([landmark.part(42).x, landmark.part(42).y,landmark.part(47).x, landmark.part(47).y])
+
+    #Lips outer part
+    i = 49
+    while i <= 59:
+        landmarks.append([landmark.part(i).x, landmark.part(i).y,landmark.part(i - 1).x, landmark.part(i - 1).y])
+        i += 1
+    landmarks.append([landmark.part(48).x, landmark.part(48).y,landmark.part(59).x, landmark.part(59).y])
+
+    #Lips inside part
+    i = 61
+    while i <= 67:
+        landmarks.append([landmark.part(i).x, landmark.part(i).y,landmark.part(i - 1).x, landmark.part(i - 1).y])
+        i += 1
+    landmarks.append([landmark.part(60).x, landmark.part(60).y,landmark.part(67).x, landmark.part(67).y])
+
+    return landmarks
+
+def shape_to_np(shape, dtype="int"):
+    # initialize the list of (x, y)-coordinates
+    coords = np.zeros((68, 2), dtype=dtype)
+ 
+    # loop over the 68 facial landmarks and convert them
+    # to a 2-tuple of (x, y)-coordinates
+    for i in range(0, 68):
+        coords[i] = (shape.part(i).x, shape.part(i).y)
+ 
+    # return the list of (x, y)-coordinates
+    return coords
+
+def face_recognition(face_descriptors):
+    result = []
+    for index, descriptor in enumerate(face_descriptors):
+        predictions = config.clf.predict_proba(descriptor.reshape(1, -1)).ravel()
+        maxI = np.argmax(predictions)
+        name = config.le.inverse_transform(maxI)
+        confidence = int(math.ceil(predictions[maxI]*100))
+        result.append([name, confidence])
     
-class IdentityMetadata():
-    def __init__(self, base, name, file):
-        # dataset base directory
-        self.base = base
-        # identity name
-        self.name = name
-        # image file name
-        self.file = file
+    return result
 
-    def __repr__(self):
-        return self.image_path()
+def draw_face_name(img, face_location, name, ratio):
 
-    def image_path(self):
-        return os.path.join(self.base, self.name, self.file) 
+    top = int(face_location.top()) * ratio
+    left = int(face_location.left()) * ratio
+    bottom = int(face_location.bottom()) * ratio
+    right = int(face_location.right()) * ratio
+    width = int(face_location.width()) * ratio
+    height = int(face_location.height()) * ratio
     
-def load_metadata(path):
-    metadata = []
-    for i in os.listdir(path):
-        ext = os.path.splitext(i)[1]
-        #Don't include file
-        if ext == "":
-            for f in os.listdir(os.path.join(path, i)):
-                extension = os.path.splitext(f)[1][1:].upper()
-                extension_allow  = [elem.upper() for elem in {'png', 'jpg', 'jpeg'} ]
-                
-                if extension in extension_allow:
-                    metadata.append(IdentityMetadata(path, i, f))
-    return np.array(metadata)
+    #cv2.rectangle(img, (left, top),(right, bottom), (0, 0, 255), 1)
 
-def face_locations():
-    return ""
+    #baseline = 0
+    #textSize = cv2.getTextSize(name, cv2.FONT_HERSHEY_DUPLEX, 0.5, 1)
+    #rect_left = left + textSize[0][0] + 10
+
+    font = ImageFont.truetype("arial", 18)
+    text_size = font.getsize(name)
+    rect_left = left + text_size[0] + 10
+    
+    if rect_left < left + width:
+        rect_left = left + width
+
+    cv2.rectangle(img, (left, top + height - 25), (rect_left, top + height), (0, 0, 255), cv2.FILLED)
+    #cv2.putText(img, name, (left + 6, top + height - 6), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255), 1)
+    array = Image.fromarray(img)
+    draw = ImageDraw.Draw(array)
+    draw.text((left + 6, top + height - 22), name, fill="white", font=font)
+
+    return np.array(array)
