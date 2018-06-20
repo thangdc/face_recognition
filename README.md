@@ -20,22 +20,20 @@
                 - ...
             - ...
             
-  - Sau đó dùng lệnh sau để tạo ra tập tin huấn luyện (model.json)
+  - Sau đó dùng lệnh sau để tạo ra tập tin huấn luyện (model.pkl)
   
         - python train.py -f "đường dẫn thư mục cha" -c "thuật toán dùng để huấn luyện: (LinearSvm, GridSearchSvm, GMM, RadialSvm, DecisionTree, GaussianNB)"
         
-        - Sau khi chạy lệnh này xong bạn sẽ thấy tập tin model_classifier.pkl được tạo trong thư mục chính của project
+        - Sau khi chạy lệnh này xong bạn sẽ thấy tập tin model_classifier.pkl được tạo trong thư mục train của project
         
    ![Training faces](../master/imgs/face_recognition_training.png)
-        
-  - Hoặc có thể xóa các thư mục con trong thư mục train, sau đó thêm folder theo cấu trúc: tên folder là tên dùng để huấn luyện và nhận diện, các tập tin con chứa các khuôn mặt dùng để huấn luyện.
  
   
 + Nhận diện khuôn mặt của hình ảnh trong thư mục
   
-  - Sau khi có được dữ liệu huấn luyện (model_classifier.pkl), chạy dòng lệnh sau:
+  - Sau khi có được dữ liệu huấn luyện (model_classifier.pkl), chạy dòng lệnh sau (tham số -e không bắt buộc):
   
-        - python facerec_from_folder_images.py -f "đường dẫn thư mục chứa ảnh cần nhận diện" -m "đường dẫn của tập tin model.pkl"
+        - python facerec_from_folder_images.py -f "đường dẫn thư mục chứa ảnh cần nhận diện" -e "đường dẫn thư mục cần lưu khuôn mặt trích xuất"
         
     ![Recognition from folder image](../master/imgs/face_recognition_from_folder_images.png)
     
@@ -43,15 +41,14 @@
         
 + Nhận diện khuôn mặt trong video:
 
-    - Để nhận diện khuôn mặt trong video chạy dòng lệnh sau:
+    - Để nhận diện khuôn mặt trong video chạy dòng lệnh sau (nếu không có tham số -f thì video sẽ được lấy từ webcam, nếu tham số -f có thể là tập tin video hoặc link youtube):
     
-          - python facerec_from_video_file.py -f "đường dẫn đến file video" -m "đường dẫn tập tin model.pkl"
+          - python facerec_from_videopy -f "đường dẫn đến file video"
           
     ![Recognition from video file](../master/imgs/face_recognition_from_video_file.png)
           
     ![Recognition from video file result](../master/imgs/face_recognition_from_video_file_result.png)
 
-Xem chi tiết các tham số của mỗi lệnh trong thư mục "examples"
 
 Tham khảo: 
 
