@@ -1,4 +1,4 @@
-import os
+import os, sys
 from common import utils, config, data
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
@@ -92,7 +92,10 @@ elif classifier == 'GaussianNB':
 clf.fit(descriptors, labelsNum)
 print("Training time: ", time.time() - start)
 
-fName = "{}/model_{}.pkl".format(config.train_folder, classifier)
+dirpath = os.path.realpath(os.path.dirname(sys.argv[0]))
+train_folder = os.path.join(dirpath, "train")
+
+fName = "{}/model_{}.pkl".format(train_folder, classifier)
 print("Saving classifier to '{}'".format(fName))
 with open(fName, 'wb') as f:
     pickle.dump((le, clf), f)
