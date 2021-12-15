@@ -22,7 +22,7 @@
             
   - Sau đó dùng lệnh sau để tạo ra tập tin huấn luyện (model.pkl)
   
-        - python train.py -f "đường dẫn thư mục cha" -c "thuật toán dùng để huấn luyện: (LinearSvm, GridSearchSvm, GMM, RadialSvm, DecisionTree, GaussianNB)"
+        - python training.py -f "đường dẫn thư mục cha" -c "thuật toán dùng để huấn luyện: (LinearSvm, GridSearchSvm, GMM, RadialSvm, DecisionTree, GaussianNB)"
         
         - Sau khi chạy lệnh này xong bạn sẽ thấy tập tin model_classifier.pkl được tạo trong thư mục train của project
         
@@ -43,7 +43,7 @@
 
     - Để nhận diện khuôn mặt trong video chạy dòng lệnh sau (nếu không có tham số -f thì video sẽ được lấy từ webcam, nếu tham số -f có thể là tập tin video hoặc link youtube):
     
-          - python facerec_from_videopy -f "đường dẫn đến file video"
+          - python facerec_from_video.py -f "đường dẫn đến file video"
           
     ![Recognition from video file](../master/imgs/face_recognition_from_video_file.png)
           
