@@ -214,7 +214,7 @@ def face_recognition(face_descriptors):
     for index, descriptor in enumerate(face_descriptors):
         predictions = config.clf.predict_proba(descriptor.reshape(1, -1)).ravel()
         maxI = np.argmax(predictions)
-        name = config.le.inverse_transform(maxI)
+        name = config.le.inverse_transform([maxI])
         confidence = int(math.ceil(predictions[maxI]*100))
         result.append([name, confidence])
     
