@@ -25,7 +25,7 @@ window_height = 700
 cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 cv2.resizeWindow(window_name, window_width, window_height)
 cv2.moveWindow(window_name, 0,0)
-    
+
 for f in data.iterImgs(images):
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
@@ -73,32 +73,43 @@ for f in data.iterImgs(images):
         width = face_locations[index].width()
         height = face_locations[index].height()
 
-
         t_x = int((window_width * left) / actual.width)
         t_y = int((window_height * top) / actual.height)
         
-        t_w = int(t_x + (width/w_r))
-        t_h = int(t_y + (height/h_r))
+        t_w = int(t_x + (width / w_r))
+        t_h = int(t_y + (height / h_r))
         
         cv2.rectangle(resize_image, (t_x, t_y),(t_w, t_h), (0, 0, 255), 2)
         cv2.imshow(window_name, resize_image)
         cv2.waitKey(1)
         
+        x1 = top - config.padding
+        y1 = top + height + config.padding
+        
+        x2 = left - config.padding
+        y2 = left + width + config.padding
+        
         if extracted != "":
-            face_img = img_actual_color[top : top + height, left : left + width]        
+            face_img = img_actual_color[x1 : y1, x2 : y2]        
             utils.save_face_image(face_img, name, extracted, confidence)
         else:
             try:
-                face = img[top : top + height, left : left + width]
+                face = img[x1 : y1, x2 : y2]
                 tmp = Image.fromarray(face)
                 if tmp.width > 50 and tmp.height > 50:
                     face_resize = cv2.resize(face, (250, 250))
-                            
+
+                    blob = cv2.dnn.blobFromImage(face, 1.0, (227,227), config.MODEL_MEAN_VALUES, swapRB=False)                    
+                    
+                    gender = utils.get_gender(blob)                    
+                    age = utils.get_age(blob)
+                    
                     cv2.line(face_resize,(0,240),(250,240),(255,0,0),20)
                     array = Image.fromarray(face_resize)
                     draw = ImageDraw.Draw(array)
                     font = ImageFont.truetype("arial", 18)
-                    draw.text((5, 230), "{} - ({}%)".format(name, confidence), fill="white", font=font)
+                    draw.text((5, 230), f'{name} - ({confidence}%)', fill="white", font=font)
+                    draw.text((5, 5), f'{gender} - ({age} years)', fill="white", font=font)
                     result = np.array(array)
                                 
                     vis = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)

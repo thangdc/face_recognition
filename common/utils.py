@@ -219,6 +219,18 @@ def face_recognition(face_descriptors):
         result.append([name, confidence])
     
     return result
+    
+def get_gender(blob):    
+    config.genderNet.setInput(blob)
+    genderPreds = config.genderNet.forward()
+    gender = config.genderList[genderPreds[0].argmax()]
+    return gender
+    
+def get_age(blob):
+    config.ageNet.setInput(blob)
+    agePreds = config.ageNet.forward()
+    age = config.ageList[agePreds[0].argmax()]
+    return age[1:-1]
 
 def draw_face_name(img, face_location, name, ratio):
 

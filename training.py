@@ -6,7 +6,6 @@ import time
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.mixture import GMM
 from sklearn.model_selection import GridSearchCV
 import cv2
 import argparse
@@ -76,8 +75,6 @@ elif classifier == 'GridSearchSvm':
         'kernel': ['rbf']}
     ]
     clf = GridSearchCV(SVC(C=1, probability=True), param_grid, cv=5)
-elif classifier == 'GMM':  # Doesn't work best
-    clf = GMM(n_components=nClasses)
 
 # ref:
 # http://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html#example-classification-plot-classifier-comparison-py
