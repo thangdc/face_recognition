@@ -46,5 +46,5 @@ tensorboard==1.7.0
 tensorflow==2.5.2
 termcolor==1.1.0
 Theano==1.0.1
-Werkzeug==0.14.1
+Werkzeug==0.15.3
 youtube-dl==2018.5.9
