@@ -1,4 +1,4 @@
-# Nhận diện khuôn mặt
+# Nhận diện khuôn mặt, giới tính và tuổi
 
 1. Hướng dẫn cài đặt OpenCV 3 và Dlib trên Windows
 - Xem chi tiết tại thư mục: docs/Install OpenCV 3 and Dlib on Windows.docx
